@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Market Graphs</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 30px;
+            margin: 0;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #38bdf8;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        h3 {
+            margin-bottom: 15px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 400px !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>📊 90-Day Crypto Market Trends</h2>
+
+<div class="card">
+    <h3>Bitcoin</h3>
+    <canvas id="btcChart"></canvas>
+</div>
+
+<div class="card">
+    <h3>Ethereum</h3>
+    <canvas id="ethChart"></canvas>
+</div>
+
+<div class="card">
+    <h3>Ripple</h3>
+    <canvas id="xrpChart"></canvas>
+</div>
+
+<div class="card">
+    <h3>Litecoin</h3>
+    <canvas id="ltcChart"></canvas>
+</div>
+
+<!-- DATA -->
+<script id="btc-data" type="application/json">{{ btc_dates | tojson | safe }}</script>
+<script id="btc-values" type="application/json">{{ btc_values | tojson | safe }}</script>
+
+<script id="eth-data" type="application/json">{{ eth_dates | tojson | safe }}</script>
+<script id="eth-values" type="application/json">{{ eth_values | tojson | safe }}</script>
+
+<script id="xrp-data" type="application/json">{{ xrp_dates | tojson | safe }}</script>
+<script id="xrp-values" type="application/json">{{ xrp_values | tojson | safe }}</script>
+
+<script id="ltc-data" type="application/json">{{ ltc_dates | tojson | safe }}</script>
+<script id="ltc-values" type="application/json">{{ ltc_values | tojson | safe }}</script>
+
+<script>
+const btcDates = JSON.parse(document.getElementById("btc-data").textContent);
+const btcValues = JSON.parse(document.getElementById("btc-values").textContent);
+
+const ethDates = JSON.parse(document.getElementById("eth-data").textContent);
+const ethValues = JSON.parse(document.getElementById("eth-values").textContent);
+
+const xrpDates = JSON.parse(document.getElementById("xrp-data").textContent);
+const xrpValues = JSON.parse(document.getElementById("xrp-values").textContent);
+
+const ltcDates = JSON.parse(document.getElementById("ltc-data").textContent);
+const ltcValues = JSON.parse(document.getElementById("ltc-values").textContent);
+
+/* ================= CHART FUNCTION ================= */
+function createChart(canvasId, labels, data, labelName) {
+    new Chart(document.getElementById(canvasId), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: labelName,
+                data: data,
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "#e2e8f0"
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: "#94a3b8" },
+                    grid: { color: "#1e293b" }
+                },
+                y: {
+                    ticks: { color: "#94a3b8" },
+                    grid: { color: "#1e293b" }
+                }
+            }
+        }
+    });
+}
+
+/* ================= CREATE CHARTS ================= */
+createChart("btcChart", btcDates, btcValues, "Bitcoin (INR)");
+createChart("ethChart", ethDates, ethValues, "Ethereum (INR)");
+createChart("xrpChart", xrpDates, xrpValues, "Ripple (INR)");
+createChart("ltcChart", ltcDates, ltcValues, "Litecoin (INR)");
+</script>
+
+</body>
+</html>

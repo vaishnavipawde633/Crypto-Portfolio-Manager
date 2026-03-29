@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Crypto Portfolio Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0e17 0%, #1a2338 100%);
+            color: #e0e7ff;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .neon-text { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+    </style>
+</head>
+<body class="min-h-screen">
+    <nav class="bg-slate-900 border-b border-slate-700 py-5">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-chart-line text-3xl text-blue-500"></i>
+                <h1 class="text-2xl font-bold">Crypto Portfolio</h1>
+            </div>
+            <div class="flex items-center gap-8 text-sm">
+                <a href="/dashboard" class="hover:text-blue-400 transition">Dashboard</a>
+                <a href="/calculator" class="hover:text-blue-400 transition">Calculator</a>
+                <a href="/predictor" class="hover:text-blue-400 transition">Predictor</a>
+                <a href="/summary" class="hover:text-blue-400 transition">Summary</a>
+                <a href="/logout" class="text-red-400 hover:text-red-300 transition">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 py-10">
+        <h1 class="text-4xl font-bold mb-10 neon-text">Dashboard</h1>
+
+        <!-- Daily Best Performers -->
+        <div class="card p-8 rounded-3xl mb-8">
+            <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                <i class="fas fa-trophy text-yellow-400"></i> Daily Best Performers
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="px-6 py-5 text-left">Date</th>
+                            <th class="px-6 py-5 text-left">Coin</th>
+                            <th class="px-6 py-5 text-right">24h Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in best_coin_data %}
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/50">
+                            <td class="px-6 py-5">{{ item.date }}</td>
+                            <td class="px-6 py-5 font-medium">{{ item.coin }}</td>
+                            <td class="px-6 py-5 text-right font-semibold 
+                                {% if item.change > 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                                {{ "%.2f"|format(item.change) }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Recommended Investment Mix -->
+            <div class="card p-8 rounded-3xl">
+                <h2 class="text-2xl font-semibold mb-6">Recommended Investment Mix</h2>
+                <table class="w-full">
+                    {% for row in investment_table %}
+                    <tr class="border-b border-slate-700">
+                        <td class="py-4 font-medium">{{ row.coin }}</td>
+                        <td class="py-4 text-right font-bold">{{ row.allocation }}%</td>
+                        <td class="py-4 text-right">
+                            <span class="px-4 py-1 rounded-full text-xs
+                                {% if row.risk == 'Low Risk' %}bg-green-900 text-green-300
+                                {% elif row.risk == 'Medium Risk' %}bg-yellow-900 text-yellow-300
+                                {% else %}bg-red-900 text-red-300{% endif %}">
+                                {{ row.risk }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
+            <!-- Risk Analysis -->
+            <div class="card p-8 rounded-3xl">
+                <h2 class="text-2xl font-semibold mb-6">Risk Analysis</h2>
+                <table class="w-full">
+                    {% for row in risk_table %}
+                    <tr class="border-b border-slate-700">
+                        <td class="py-4">{{ row.coin }}</td>
+                        <td class="py-4 text-center">{{ row.risk }}</td>
+                        <td class="py-4 text-right">{{ "%.2f"|format(row.predicted) }}%</td>
+                        <td class="py-4 text-center">
+                            <span class="text-sm {{ 'text-green-400' if row.suggestion == 'Increase Allocation' else 'text-orange-400' }}">
+                                {{ row.suggestion }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        <!-- My Investments -->
+        <div class="card p-8 rounded-3xl mt-8">
+            <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                <i class="fas fa-wallet text-green-400"></i> My Investments
+            </h2>
+           
+            {% if user_investments %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="px-6 py-4 text-left">Coin</th>
+                            <th class="px-6 py-4 text-right">Invested Amount (₹)</th>
+                            <th class="px-6 py-4 text-right">Allocation %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in user_investments %}
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/50">
+                            <td class="px-6 py-5 font-medium">{{ inv.coin }}</td>
+                            <td class="px-6 py-5 text-right font-bold text-green-400">
+                                ₹{{ "{:,.2f}".format(inv.amount) }}
+                            </td>
+                            <td class="px-6 py-5 text-right font-medium">{{ inv.allocation }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-slate-400 text-center py-16">
+                <i class="fas fa-wallet text-6xl mb-4 opacity-30"></i>
+                <p class="text-xl mb-2">No investments yet</p>
+                <p class="mb-6">Start building your portfolio today!</p>
+                <a href="/calculator" 
+                   class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 transition px-8 py-3 rounded-2xl font-medium">
+                    <i class="fas fa-calculator"></i> Go to Calculator
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</body>
+</html>

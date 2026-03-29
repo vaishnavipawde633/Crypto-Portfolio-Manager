@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictor - Crypto Portfolio Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0e17 0%, #1a2338 100%);
+            color: #e0e7ff;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-slate-900 border-b border-slate-700 py-5">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-chart-line text-3xl text-blue-500"></i>
+                <h1 class="text-2xl font-bold">Crypto Portfolio</h1>
+            </div>
+            <div class="flex items-center gap-8 text-sm">
+                <a href="/dashboard" class="hover:text-blue-400">Dashboard</a>
+                <a href="/calculator" class="hover:text-blue-400">Calculator</a>
+                <a href="/predictor" class="text-blue-400 font-medium">Predictor</a>
+                <a href="/summary" class="hover:text-blue-400">Summary</a>
+                <a href="/logout" class="text-red-400 hover:text-red-300">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-6 py-10">
+        <h1 class="text-4xl font-bold mb-2"> Price Predictor</h1>
+        <p class="text-slate-400 mb-10"></p>
+
+        <!-- Input Form -->
+        <div class="card p-8 rounded-3xl mb-10">
+            <form method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-slate-300 mb-2 font-medium">Select Coin</label>
+                    <select name="coin" class="w-full px-5 py-4 bg-slate-800 border border-slate-600 rounded-2xl focus:border-blue-500 text-white">
+                        <option value="Bitcoin" {% if selected_coin == 'Bitcoin' %}selected{% endif %}>Bitcoin (BTC)</option>
+                        <option value="Ethereum" {% if selected_coin == 'Ethereum' %}selected{% endif %}>Ethereum (ETH)</option>
+                        <option value="Ripple" {% if selected_coin == 'Ripple' %}selected{% endif %}>Ripple (XRP)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 mb-2 font-medium">Days Ahead</label>
+                    <input type="number" name="days_ahead" value="{{ days_ahead }}" 
+                           min="1" max="30" class="w-full px-5 py-4 bg-slate-800 border border-slate-600 rounded-2xl focus:border-blue-500 text-white">
+                </div>
+
+                <div class="flex items-end">
+                    <button type="submit" class="btn-primary w-full py-4 rounded-2xl text-lg font-semibold">
+                        <i class="fas fa-brain mr-2"></i> Get Prediction
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Result Section -->
+        {% if prediction %}
+        <div class="card p-10 rounded-3xl">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-bold">{{ prediction.coin }} Price Prediction</h2>
+                <span class="px-6 py-2 bg-blue-900 text-blue-300 rounded-full text-sm">
+                    {{ prediction.days_ahead }} Days Ahead
+                </span>
+            </div>
+
+            {% if not prediction.get('success', True) %}
+            <div class="bg-amber-900/60 border border-amber-600 p-4 rounded-2xl mb-8 text-center">
+                {{ prediction.get('error', 'Showing sample prediction') }}
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div>
+                    <p class="text-slate-400">Current Price</p>
+                    <p class="text-4xl font-bold mt-3">₹ {{ "{:,.0f}".format(prediction.current_price) }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-400">Predicted Price</p>
+                    <p class="text-4xl font-bold text-green-400 mt-3">₹ {{ "{:,.0f}".format(prediction.predicted_price) }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-400">Expected Change</p>
+                    <p class="text-4xl font-bold mt-3 {% if prediction.predicted_change > 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                        {{ prediction.predicted_change }}%
+                    </p>
+                </div>
+            </div>
+
+            {% if prediction.trend %}
+            <div class="mt-12">
+                <h3 class="text-xl font-semibold mb-5">Prediction Trend</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="py-4 text-left">Day</th>
+                                <th class="py-4 text-right">Predicted Price (₹)</th>
+                                <th class="py-4 text-right">Change %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in prediction.trend %}
+                            <tr class="border-b border-slate-800">
+                                <td class="py-5">Day {{ item.day }}</td>
+                                <td class="py-5 text-right">₹ {{ "{:,.0f}".format(item.predicted_price) }}</td>
+                                <td class="py-5 text-right font-medium 
+                                    {% if item.change_percent > 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                                    {{ item.change_percent }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-10 text-center text-sm text-slate-400">
+                Confidence: <span class="text-amber-400">{{ prediction.confidence }}</span><br>
+                <small></small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

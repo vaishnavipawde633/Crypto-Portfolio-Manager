@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Summary - Crypto Portfolio Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0e17 0%, #1a2338 100%);
+            color: #e0e7ff;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .neon-text { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+    </style>
+</head>
+<body class="min-h-screen">
+    <nav class="bg-slate-900 border-b border-slate-700 py-5">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-chart-line text-3xl text-blue-500"></i>
+                <h1 class="text-2xl font-bold">CryptoMilestone</h1>
+            </div>
+            <div class="flex items-center gap-8 text-sm">
+                <a href="/dashboard" class="hover:text-blue-400 transition">Dashboard</a>
+                <a href="/calculator" class="hover:text-blue-400 transition">Calculator</a>
+                <a href="/predictor" class="hover:text-blue-400 transition">Predictor</a>
+                <a href="/summary" class="text-blue-400 font-medium">Summary</a>
+                <a href="/logout" class="text-red-400 hover:text-red-300 transition">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 py-10">
+        <h1 class="text-4xl font-bold mb-10 neon-text">Portfolio Summary</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <!-- Investment Allocation -->
+            <div class="card p-8 rounded-3xl">
+                <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                    <i class="fas fa-pie-chart text-blue-400"></i> Investment Allocation
+                </h2>
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="py-4 text-left">Coin</th>
+                            <th class="py-4 text-right">Recommended Allocation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in investment_table %}
+                        <tr class="border-b border-slate-800">
+                            <td class="py-5 font-medium">{{ row.coin }}</td>
+                            <td class="py-5 text-right font-bold text-blue-400">{{ row.allocation }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Risk Analysis -->
+            <div class="card p-8 rounded-3xl">
+                <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                    <i class="fas fa-exclamation-triangle text-amber-400"></i> Risk Analysis
+                </h2>
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="py-4 text-left">Coin</th>
+                            <th class="py-4 text-center">Risk Score</th>
+                            <th class="py-4 text-right">Predicted Return</th>
+                            <th class="py-4 text-center">Suggestion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in risk_table %}
+                        <tr class="border-b border-slate-800">
+                            <td class="py-5 font-medium">{{ row.coin }}</td>
+                            <td class="py-5 text-center">
+                                <span class="px-4 py-1 rounded-full text-sm
+                                    {% if row.risk > 6 %}bg-red-900 text-red-300
+                                    {% elif row.risk > 3 %}bg-yellow-900 text-yellow-300
+                                    {% else %}bg-green-900 text-green-300{% endif %}">
+                                    {{ row.risk }}
+                                </span>
+                            </td>
+                            <td class="py-5 text-right font-bold text-green-400">
+                                {{ "%.2f"|format(row.predicted) }}%
+                            </td>
+                            <td class="py-5 text-center">
+                                <span class="text-sm font-medium
+                                    {% if row.suggestion == 'Increase Allocation' %}text-green-400
+                                    {% elif row.suggestion == 'Reduce Exposure' %}text-red-400
+                                    {% else %}text-slate-400{% endif %}">
+                                    {{ row.suggestion }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- Latest AI Prediction -->
+        <div class="card p-8 rounded-3xl mt-8">
+            <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                <i class="fas fa-brain text-purple-400"></i> Latest AI Prediction
+            </h2>
+            {% if prediction and prediction.success %}
+            <div class="bg-slate-900/80 p-8 rounded-2xl border border-purple-500/30">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                    <div>
+                        <p class="text-3xl font-bold">{{ prediction.coin }}</p>
+                        <p class="text-slate-400 mt-1">{{ prediction.days_ahead }} days ahead prediction</p>
+                    </div>
+                    <div class="text-center md:text-right">
+                        <p class="text-5xl font-bold text-green-400">
+                            ₹{{ "{:,.0f}".format(prediction.predicted_price) }}
+                        </p>
+                        <p class="text-2xl mt-2 {% if prediction.predicted_change > 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                            {{ prediction.predicted_change }}% 
+                            <span class="text-base">from current</span>
+                        </p>
+                        <p class="text-slate-400 text-sm mt-3">
+                            Current Price: ₹{{ "{:,.0f}".format(prediction.current_price) }}
+                        </p>
+                    </div>
+                </div>
+                {% if prediction.trend %}
+                <div class="mt-8 pt-6 border-t border-slate-700">
+                    <p class="text-sm text-slate-400 mb-3">Short-term Trend:</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        {% for t in prediction.trend[:3] %}
+                        <div class="text-center">
+                            <p class="text-xs text-slate-400">Day {{ t.day }}</p>
+                            <p class="font-medium">₹{{ "{:,.0f}".format(t.predicted_price) }}</p>
+                            <p class="{% if t.change_percent > 0 %}text-green-400{% else %}text-red-400{% endif %} text-sm">
+                                {{ t.change_percent }}%
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <p class="text-slate-400 text-center py-12">No prediction available at the moment.</p>
+            {% endif %}
+        </div>
+
+        <!-- Best Performing Coin -->
+        <div class="card p-8 rounded-3xl mt-8">
+            <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                <i class="fas fa-trophy text-yellow-400"></i> Best Performing Coin (Recent)
+            </h2>
+            {% if best_coin_data and best_coin_data|length > 0 %}
+            <div class="text-center py-10">
+                <div class="text-7xl mb-6">🏆</div>
+                <p class="text-4xl font-bold text-yellow-300">{{ best_coin_data[0].coin }}</p>
+                <p class="text-5xl font-bold mt-4 {% if best_coin_data[0].change > 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                    {{ "%+.2f"|format(best_coin_data[0].change) }}%
+                </p>
+                <p class="text-slate-400 mt-3">on {{ best_coin_data[0].date }}</p>
+                
+                <!-- Show all recent performers -->
+                {% if best_coin_data|length > 1 %}
+                <div class="mt-10 pt-8 border-t border-slate-700">
+                    <p class="text-sm uppercase tracking-widest text-slate-400 mb-4">Other Coins Today</p>
+                    <div class="flex flex-wrap justify-center gap-6">
+                        {% for item in best_coin_data[1:] %}
+                        <div class="text-center">
+                            <p class="font-medium">{{ item.coin }}</p>
+                            <p class="{% if item.change > 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                                {{ "%+.2f"|format(item.change) }}%
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <p class="text-slate-400 text-center py-12">No performance data available.</p>
+            {% endif %}
+        </div>
+
+    </div>
+</body>
+</html>
